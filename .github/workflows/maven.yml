@@ -25,11 +25,13 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
 
+      # Maven build 작업시 권한으로 인한 접근 허용 
       - name: Build with Maven
         run: |
           chmod +x mvnw 
           ./mvnw verify
 
+      # docker의 tty 명령어를 사용하기 위한 환경설정
       - if: ${{ github.ref == 'refs/heads/main' }}
         name: Build and Publish Docker Image
         run: |
