@@ -15,3 +15,9 @@ EXPOSE 8080
 # 애플리케이션을 실행할 명령어 설정
 ENTRYPOINT [ "sh", "-c", "java -jar /app.jar" ]
 
+
+#SpringBoot JarLauncher를 통해서 실행 하는 방법
+#FROM eclipse-temurin:17.0.11_9-jre-focal
+#ADD target/*.jar app.jar
+#EXPOSE 8080
+#ENTRYPOINT ["java", "-cp", "app.jar", "org.springframework.boot.loader.JarLauncher"]

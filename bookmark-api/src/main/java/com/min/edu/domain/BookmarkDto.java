@@ -15,7 +15,7 @@ import lombok.Setter;
 //TODO 014 JAP의 Entity와 연결을 끊기위한 프로덕션DTO 객체
 @Getter
 @Setter
-@NoArgsConstructor
+//@NoArgsConstructor
 @AllArgsConstructor
 public class BookmarkDto {
 

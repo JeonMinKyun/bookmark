@@ -1,0 +1,21 @@
+# 첫 번째 단계: 레이어 추출
+FROM eclipse-temurin:17.0.11_9-jre-focal AS builder
+WORKDIR /application
+ARG JAR_FILE=target/*.jar
+COPY ${JAR_FILE} application.jar
+
+# JAR 파일에서 레이어를 추출
+RUN java -Djarmode=layertools -jar application.jar extract
+
+# 두 번째 단계: 추출된 레이어 복사
+FROM eclipse-temurin:17.0.11_9-jre-focal
+WORKDIR /application
+
+# 복사 경로를 명확히 지정
+COPY --from=builder /application/dependencies/ ./
+COPY --from=builder /application/spring-boot-loader/ ./
+COPY --from=builder /application/snapshot-dependencies/ ./
+COPY --from=builder /application/application/ ./
+
+# ENTRYPOINT에서 클래스 경로를 올바르게 설정
+ENTRYPOINT ["java", "-cp", "spring-boot-loader/*:application/*", "org.springframework.boot.loader.JarLauncher"]

@@ -2,25 +2,41 @@ package com.min.edu;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.hamcrest.Matchers.containsString;
 
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.hamcrest.CoreMatchers;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.Assert.assertTrue;
+
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
+import org.testcontainers.shaded.com.github.dockerjava.core.MediaType;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.min.edu.domain.Bookmark;
 import com.min.edu.domain.BookmarkRepository;
+import com.min.edu.domain.CreateBookmarkRequest;
 
 //TODO 024 Postgresql을 docker container를 사용하여 test를 위한 testcontainer 설정
 @TestPropertySource(properties = {
@@ -37,6 +53,9 @@ class BookmarkControllerTest {
 	@Autowired
 	private BookmarkRepository bookmarkRepository;
 	private List<Bookmark> bookmarks;
+	
+	@Autowired
+	private ObjectMapper objectMapper;
 	
 //TODO 021 Controller Test를 위한 JUnit 생성, 실행후 status 200 요청 확인
 //	@Test
@@ -135,6 +154,30 @@ class BookmarkControllerTest {
 		.andExpect(jsonPath("$.hasNext", CoreMatchers.equalTo(hasNext)))
 		.andExpect(jsonPath("$.hasPrevious", CoreMatchers.equalTo(hasPrevious)))
 		;
+	}
+	
+	//TODO 041 create 의 통합 테스트 작성
+	@Test
+	public void shouldCreateBookmarkSuccessfully() throws Exception {
+		MvcResult result =this.mvc.perform(
+				MockMvcRequestBuilders.post("/api/bookmarks")
+		        		.contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+		                .content("""
+				                {
+			                    "title": "SivaLabs Blog"
+			                }
+			                """)
+		    )
+		    .andExpect(status().is4xxClientError())
+		    .andExpect(jsonPath("$.status", is(400)))
+		    .andExpect(jsonPath("$.field", is("url")))
+		    .andExpect(jsonPath("$.message", is("URL은 필수 입력 값입니다")))
+		    .andReturn();
+		
+		String contentType = result.getResponse().getContentType();
+		System.out.println("Content Type: " + contentType);
+		String responseBody = result.getResponse().getContentAsString();
+		System.out.println("Response JSON: " + responseBody);
 	}
 
 }
