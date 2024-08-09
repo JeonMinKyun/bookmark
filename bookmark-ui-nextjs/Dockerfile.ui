@@ -2,7 +2,7 @@
 FROM node:20-alpine AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
-COPY package.json yarn.lock ./
+COPY package.json yarn.lock ./ .env.local
 RUN yarn install --frozen-lockfile
 
 # 빌더를 하기 위한 내부 폴더를 선택하고 필요 node_modules를 복사하고 빌드 한다
@@ -11,7 +11,7 @@ WORKDIR /app
 
 COPY . .
 COPY --from=deps /app/node_modules ./node_modules
-COPY --from=deps /.env.local ./.env.local
+#COPY --from=deps .env.local ./.env.local
 
 RUN yarn build
 
