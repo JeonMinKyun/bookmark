@@ -69,7 +69,6 @@ jobs:
       - if: ${{ github.ref == 'refs/heads/main' }}
         name: Build and Publish Docker Image
         run: |
-          cd bookmark-ui-nextjs
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/bookmarker-ui-nextjs .
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/bookmark-ui-nextjs .
           docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
           docker push ${{ secrets.DOCKER_USERNAME }}/bookmarker-ui-nextjs
