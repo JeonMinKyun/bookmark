@@ -266,10 +266,6 @@
 					<!-- 생성된 이미지는 바로 Docker hub로 전송된다 -->
 					<to>
 						<image>docker.io/lucas0429/${project.artifactId}</image>
-						<auth>
-							<username>lucas0429</username>
-							<password>dckr_pat_xA7GyRdOe1jesy_G7fe7NlyEIU0</password>
-						</auth>
 					</to>
 				</configuration>
 			</plugin>
