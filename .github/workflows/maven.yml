@@ -72,6 +72,13 @@ jobs:
       - name: Install dependecies
         run: npm ci
       
+     
+      
+
+      #Next.js 빌드
+      - name: Next.js Build
+        run: npm run build
+
       #.env.local 파일 설정
       # 복사해서 사용하지 않는 이유는 UI의 .gitignore 파일은 .env* 파일을 제외 한다
       # 파일을 작성해서 넣어 준다 echo 문서를 만들어 준다
@@ -79,10 +86,6 @@ jobs:
         run: |
           echo "SERVER_SIDE_API_BASE_URL=${{ secrets.SERVER_SIDE_API_BASE_URL }}" > .env.local
           echo "NEXT_PUBLIC_CLIENT_SIDE_API_BASE_URL=${{ secrets.NEXT_PUBLIC_CLIENT_SIDE_API_BASE_URL }}" >> .env.local
-
-      #Next.js 빌드
-      - name: Next.js Build
-        run: npm run build
 
       # 메인 브렌치 일경우 Docker 이미지 빌드 및 배포
       - if: ${{ github.ref == 'refs/heads/main' }}
