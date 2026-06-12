@@ -48,9 +48,9 @@ jobs:
 
 
 #######################################################
-#         bookmark-ui-nextjs 빌드 및 docker 배포       #
+#         bookmar-ui-nextjs 빌드 및 docker 배포         #
 #######################################################
-build-bookmarker-ui:
+  build-bookmarker-ui:
   name: Build bookmarker-ui
   runs-on: ubuntu-latest
 
