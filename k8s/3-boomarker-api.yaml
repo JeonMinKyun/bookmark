@@ -1,3 +1,20 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: bookmarker-api-svc
+spec:
+  type: NodePort
+  selector:
+    app: bookmarker-api-pod
+  ports:
+    - name: app-port-mapping
+      protocol: TCP
+      port: 8080
+      targetPort: 8080
+      nodePort: 30090
+
+---
+
 apiVersion: apps/v1
 kind: Deployment
 
@@ -31,28 +48,28 @@ spec:
               valueFrom:
                 configMapKeyRef:
                   name: bookmarker-config
-                  key: postres_host
+                  key: postgres_host
 
             - name: DB_PORT
               valueFrom:
                 configMapKeyRef:
                   name: bookmarker-config
-                  key: postres_port
+                  key: postgres_port
 
             - name: DB_DATABASE
               valueFrom:
                 configMapKeyRef:
                   name: bookmarker-config
-                  key: postres_dbname
+                  key: postgres_dbname
 
             - name: DB_USERNAME
               valueFrom:
-                configMapKeyRef:
-                  name: bookmarker-config
-                  key: postres_username
+                secretKeyRef:
+                  name: bookmark-secrets
+                  key: postgres_username
 
             - name: DB_PASSWORD
               valueFrom:
-                configMapKeyRef:
-                  name: bookmarker-config
-                  key: postres_password
+                secretKeyRef:
+                  name: bookmark-secrets
+                  key: postgres_password
