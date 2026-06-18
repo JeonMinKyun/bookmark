@@ -186,9 +186,9 @@ jobs:
 
             # 새로운 Docker Image를 적용하기 위해
             # Deployment를 강제로 재시작
-            #
+            # kubectl get deployment로 확인
             # imagePullPolicy: Always 설정 필요
-            kubectl rollout restart deployment/bookmarker-api-deployment
+            kubectl rollout restart deployment/bookmarker-api
 
             kubectl rollout restart deployment/bookmarker-ui-deployment
 
@@ -196,7 +196,7 @@ jobs:
             echo "===== 새로운 Pod 실행 대기 ====="
 
             # 새로운 Pod가 정상 상태(Ready)가 될 때까지 대기
-            kubectl rollout status deployment/bookmarker-api-deployment
+            kubectl rollout status deployment/bookmarker-api
 
             kubectl rollout status deployment/bookmarker-ui-deployment
 
