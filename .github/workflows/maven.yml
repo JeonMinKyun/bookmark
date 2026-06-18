@@ -94,3 +94,111 @@ jobs:
           docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
           docker build -f Dockerfile.ui -t ${{ secrets.DOCKER_USERNAME }}/bookmark-ui-nextjs .
           docker push ${{ secrets.DOCKER_USERNAME }}/bookmark-ui-nextjs
+          
+############################################################
+# Kubernetes 배포 Job
+#
+# 목적:
+# Docker Hub에 Push된 최신 이미지를 KinD Kubernetes에 반영
+#
+# 동작 순서:
+# 1. GitHub Actions에서 Ubuntu 서버로 SSH 접속
+# 2. kubectl이 사용할 Kubernetes 설정 파일 지정
+# 3. 서버 내부의 /k8s YAML 파일 적용
+#    - 없으면 Kubernetes 리소스 생성(Create)
+#    - 있으면 변경된 설정으로 수정(Update)
+# 4. Deployment 재시작
+#    - 기존 Pod 종료
+#    - 새로운 Pod 생성
+#    - imagePullPolicy: Always 설정 시 최신 이미지 다운로드
+# 5. 새로운 Pod가 정상 상태가 될 때까지 대기
+############################################################
+deploy:
+  name: Deploy to KinD Kubernetes
+  runs-on: ubuntu-latest
+
+  # API와 UI Docker Image Build 및 Push가
+  # 성공적으로 완료된 후 배포 진행
+  needs:
+    - build-bookmarker-api
+    - build-bookmarker-ui
+
+  # main 브랜치 Push일 경우에만 배포 수행
+  if: github.ref == 'refs/heads/main'
+
+  steps:
+    ########################################################
+    # Ubuntu 서버에 SSH 접속하여 Kubernetes 배포
+    ########################################################
+    - name: SSH Deploy
+      uses: appleboy/ssh-action@v0.1.7
+
+      with:
+        # SSH 접속 주소
+        # ngrok TCP 주소 또는 서버 공인 IP
+        host: ${{ secrets.SERVER_IP }}
+
+        # SSH 접속 포트
+        # 일반 SSH는 22번, ngrok TCP 사용 시 할당된 포트 사용
+        port: ${{ secrets.SERVER_PORT }}
+
+        # Ubuntu 로그인 계정
+        username: ${{ secrets.SERVER_USERNAME }}
+
+        # Ubuntu 로그인 비밀번호
+        password: ${{ secrets.SERVER_PASSWORD }}
+
+        script: |
+          echo "================================="
+          echo " Kubernetes Deploy Start"
+          echo "================================="
+
+          # kubectl이 사용할 Kubernetes 인증 파일 지정
+          # GitHub Actions SSH 환경에서 kubeconfig 위치를
+          # 명확하게 지정하기 위해 설정
+          export KUBECONFIG=/home/ubuntu/.kube/config
+
+          echo "===== Kubernetes Cluster 확인 ====="
+
+          # 현재 연결 가능한 Kubernetes Node 확인
+          kubectl get nodes
+
+          echo "===== 현재 Pod 상태 확인 ====="
+
+          # 현재 실행 중인 Pod 목록 확인
+          kubectl get pods
+
+
+          echo "===== Kubernetes YAML 적용 ====="
+
+          # Ubuntu 서버 내부의 /k8s 디렉터리에 존재하는
+          # 모든 YAML 파일을 Kubernetes Cluster에 적용
+          #
+          # kubectl apply 특징
+          # - Kubernetes 리소스가 없으면 생성(Create)
+          # - 기존 리소스가 있으면 변경 사항 수정(Update)
+          kubectl apply -f /k8s
+
+
+          echo "===== Deployment 재시작 ====="
+
+          # 새로운 Docker Image를 적용하기 위해
+          # Deployment를 강제로 재시작
+          #
+          # imagePullPolicy: Always 설정 필요
+          kubectl rollout restart deployment/bookmarker-api-deployment
+
+          kubectl rollout restart deployment/bookmarker-ui-deployment
+
+
+          echo "===== 새로운 Pod 실행 대기 ====="
+
+          # 새로운 Pod가 정상 상태(Ready)가 될 때까지 대기
+          kubectl rollout status deployment/bookmarker-api-deployment
+
+          kubectl rollout status deployment/bookmarker-ui-deployment
+
+
+          echo "================================="
+          echo " Kubernetes Deploy Complete"
+          echo "================================="
